@@ -1,74 +1,71 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta charset="UTF-8" />
-  <title>Клиенты IPTV</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<title>Клиенты IPTV</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-white text-gray-800 font-sans">
-
 <!-- Авторизация -->
-<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
-    <h2 class="text-xl font-semibold mb-4">Авторизация</h2>
-    <input id="loginInput" class="w-full border rounded-xl px-4 py-2 mb-2" placeholder="Логин">
-    <input id="passwordInput" type="password" class="w-full border rounded-xl px-4 py-2 mb-4" placeholder="Пароль">
-    <button onclick="checkLogin()" class="w-full bg-black text-white py-2 rounded-xl hover:opacity-80 transition">Войти</button>
-  </div>
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="authModal">
+<div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+<h2 class="text-xl font-semibold mb-4">Авторизация</h2>
+<input class="w-full border rounded-xl px-4 py-2 mb-2" id="loginInput" placeholder="Логин"/>
+<input class="w-full border rounded-xl px-4 py-2 mb-4" id="passwordInput" placeholder="Пароль" type="password"/>
+<button class="w-full bg-black text-white py-2 rounded-xl hover:opacity-80 transition" onclick="checkLogin()">Войти</button>
 </div>
-
+</div>
 <!-- Интерфейс клиента -->
-<div id="mainContent" class="hidden">
-  <div class="fixed top-4 left-1/2 -translate-x-1/2 z-40">
-    <button onclick="openModal()" class="bg-black text-white px-6 py-3 rounded-2xl text-lg font-medium hover:opacity-80 transition">Добавить клиента</button>
-  </div>
-  <input id="searchInput" class="block mx-auto mt-24 mb-4 px-4 py-2 border rounded-xl w-full max-w-md" placeholder="Поиск по телефону..." oninput="renderClients(this.value.trim())">
-  <div id="clientsContainer" class="px-4 flex flex-col gap-4 max-w-md mx-auto"></div>
+<div class="hidden" id="mainContent">
+<div class="fixed top-4 left-1/2 -translate-x-1/2 z-40">
+<button class="bg-black text-white px-6 py-3 rounded-2xl text-lg font-medium hover:opacity-80 transition" onclick="openModal()">Добавить клиента</button>
 </div>
-
+<input class="block mx-auto mt-24 mb-4 px-4 py-2 border rounded-xl w-full max-w-md" id="searchInput" oninput="renderClients(this.value.trim())" placeholder="Поиск по телефону..."/>
+<div class="px-4 flex flex-col gap-4 max-w-md mx-auto" id="clientsContainer"></div>
+</div>
 <!-- Карточка клиента -->
-<div id="infoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold uppercase">Информация о клиенте</h2>
-      <button onclick="closeInfoModal()" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">&times;</button>
-    </div>
-    <div id="clientInfo" class="space-y-4 text-gray-700 text-xl font-bold"></div>
-    <div class="flex gap-4 mt-4">
-      <button id="editBtn" class="w-1/2 bg-black text-white py-3 rounded-xl hover:opacity-80 transition">Редактировать</button>
-      <button id="deleteBtn" class="w-1/2 bg-red-600 text-white py-3 rounded-xl hover:opacity-80 transition">Удалить</button>
-    </div>
-    <button id="downloadPlaylistBtn" class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl hover:opacity-80 transition">Скачать плейлист</button>
-  </div>
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="infoModal">
+<div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-bold uppercase">Информация о клиенте</h2>
+<button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeInfoModal()">×</button>
 </div>
-
+<div class="space-y-4 text-gray-700 text-xl font-bold" id="clientInfo"></div>
+<div class="flex gap-4 mt-4">
+<button class="w-1/2 bg-black text-white py-3 rounded-xl hover:opacity-80 transition" id="editBtn">Редактировать</button>
+<button class="w-1/2 bg-red-600 text-white py-3 rounded-xl hover:opacity-80 transition" id="deleteBtn">Удалить</button>
+</div>
+<button class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl hover:opacity-80 transition" id="downloadPlaylistBtn">Скачать плейлист</button>
+</div>
+</div>
 <!-- Форма клиента -->
-<div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold" id="modalTitle">Новый клиент</h2>
-      <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl leading-none">&times;</button>
-    </div>
-    <form id="clientForm" class="space-y-4">
-      <input type="hidden" id="clientIndex">
-      <input type="tel" id="phone" placeholder="Телефон" class="w-full border rounded-xl px-4 py-2" required>
-      <input type="email" id="email" placeholder="Email" class="w-full border rounded-xl px-4 py-2" required>
-      <input type="text" id="key" placeholder="Ключ" class="w-full border rounded-xl px-4 py-2" required>
-      <input type="tel" id="viber" placeholder="Viber" class="w-full border rounded-xl px-4 py-2" required>
-      <div class="flex space-x-2">
-        <input type="date" id="paydate" class="w-1/2 border rounded-xl px-4 py-2" required>
-        <select id="months" class="w-1/2 border rounded-xl px-4 py-2">
-          <option>1</option><option>2</option><option>3</option><option>4</option>
-          <option>5</option><option>6</option><option>7</option><option>8</option>
-          <option>9</option><option>10</option><option>11</option><option>12</option>
-        </select>
-      </div>
-      <button type="submit" class="w-full bg-black text-white py-2 rounded-xl">Сохранить</button>
-    </form>
-  </div>
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="modal">
+<div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-semibold" id="modalTitle">Новый клиент</h2>
+<button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeModal()">×</button>
 </div>
-
+<div class="text-gray-600 text-sm font-semibold mb-2">Дата оплаты и количество месяцев</div>
+<form class="space-y-4" id="clientForm">
+<input id="clientIndex" type="hidden"/>
+<input class="w-full border rounded-xl px-4 py-2" id="phone" placeholder="Телефон" required="" type="tel"/>
+<input class="w-full border rounded-xl px-4 py-2" id="email" placeholder="Email" required="" type="email"/>
+<input class="w-full border rounded-xl px-4 py-2" id="key" placeholder="Ключ" required="" type="text"/>
+<input class="w-full border rounded-xl px-4 py-2" id="viber" placeholder="Viber" required="" type="tel"/>
+<div class="flex space-x-2"><div class="w-1/2 text-center text-gray-600 text-sm font-semibold">Дата оплаты</div><div class="w-1/2 text-center text-gray-600 text-sm font-semibold">Количество месяцев</div></div><div class="flex space-x-2">
+<input class="w-1/2 border rounded-xl px-4 py-2" id="paydate" required="" type="date"/>
+<select class="w-1/2 border rounded-xl px-4 py-2" id="months">
+<option>1</option><option>2</option><option>3</option><option>4</option>
+<option>5</option><option>6</option><option>7</option><option>8</option>
+<option>9</option><option>10</option><option>11</option><option>12</option>
+</select>
+</div>
+<button class="w-full bg-black text-white py-2 rounded-xl" type="submit">Сохранить</button>
+</form>
+</div>
+</div>
 <script>
 const clients = [];
 let currentClientIndex = null;
@@ -170,6 +167,7 @@ function showClientInfo(cl) {
     <div class="flex items-center gap-3"><span>🔑</span><span>${cl.key}</span></div>
     <div class="flex items-center gap-3"><span>📅</span><span>${new Date(cl.paydate).toLocaleDateString()}</span></div>
     <div class="flex items-center gap-3"><span>📦</span><span>${cl.months || 1} мес.</span></div>
+    <div class="flex items-center gap-3"><span>🔗</span><a href="https://is.gd/${pd}" class="text-black no-underline" target="_blank">https://is.gd/${pd}</a></div>
     <div class="text-red-600 font-bold text-xl mt-2">⏳ Тариф заканчивается через: ${days} ${pluralDays(days)}</div>`;
   infoModal.classList.replace('hidden','flex');
   editBtn.onclick = () => { closeInfoModal(); openModal(currentClientIndex); };
