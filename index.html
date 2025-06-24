@@ -12416,5 +12416,66 @@ function openModal() {
 }
 </script>
 
+
+<script>
+const API_URL = "https://iptv-5o3e.onrender.com";
+let clients = [];
+
+async function fetchClients() {
+  try {
+    const res = await fetch(`${API_URL}/clients`);
+    clients = await res.json();
+    renderClients();
+  } catch (e) {
+    alert("Ошибка загрузки клиентов");
+  }
+}
+
+async function saveClient(data) {
+  try {
+    await fetch(`${API_URL}/clients`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    fetchClients();
+  } catch (e) {
+    alert("Ошибка сохранения");
+  }
+}
+
+async function deleteClient(id) {
+  try {
+    await fetch(`${API_URL}/clients/${id}`, { method: "DELETE" });
+    fetchClients();
+  } catch (e) {
+    alert("Ошибка удаления");
+  }
+}
+
+function checkLogin() {
+  const login = document.getElementById("loginInput")?.value;
+  const pass = document.getElementById("passwordInput")?.value;
+  if (login === "zpv" && pass === "11111111") {
+    localStorage.setItem("auth", "ok");
+    document.getElementById("authModal").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+    fetchClients();
+  } else {
+    alert("Неверный логин или пароль");
+  }
+}
+
+function init() {
+  if (localStorage.getItem("auth") === "ok") {
+    document.getElementById("authModal").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+    fetchClients();
+  }
+}
+
+window.onload = init;
+</script>
+
 </body>
 </html>
