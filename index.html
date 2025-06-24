@@ -12335,24 +12335,33 @@ function normalizePhone(phone) {
   return digits.startsWith("380") ? digits : (digits.startsWith("0") ? "38" : "380") + digits;
 }
 
+
 async function fetchClients() {
   try {
     const res = await fetch(API_URL + "/clients");
-    clients = await res.json();
+    const json = await res.json();
+    console.log("✅ fetchClients response:", json);
+    clients = json;
+
     renderClients();
   } catch (err) {
     console.error("Ошибка при получении клиентов:", err);
   }
 }
 
+
 async function addClient(data) {
   try {
+    console.log("📤 POSTing client:", data);
     const res = await fetch(API_URL + "/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
+    const result = await res.json();
+    console.log("📥 POST result:", result);
     if (res.ok) fetchClients();
+
   } catch (err) {
     alert("Ошибка при добавлении клиента");
   }
