@@ -12276,69 +12276,85 @@ http://wgacte1s.siauliairsavlt.com/iptv/${key}/31664/index.m3u8`;
   a.click();
 }
 </script>
+
 <script>
 const API_URL = "https://iptv-5o3e.onrender.com";
 let clients = [];
+let currentClientIndex = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const saved = localStorage.getItem("auth");
-  if (saved === "true") {
-    document.getElementById("authModal").remove();
-    document.getElementById("mainContent").classList.remove("hidden");
+  if (localStorage.getItem("auth") === "true") {
+    document.getElementById("authModal")?.remove();
+    document.getElementById("mainContent")?.classList.remove("hidden");
     fetchClients();
   }
 
-  document.getElementById("clientForm").addEventListener("submit", async e => {
+  const loginInput = document.getElementById("loginInput");
+  const passwordInput = document.getElementById("passwordInput");
+  loginInput?.addEventListener("keydown", e => e.key === "Enter" && checkLogin());
+  passwordInput?.addEventListener("keydown", e => e.key === "Enter" && checkLogin());
+
+  const form = document.getElementById("clientForm");
+  form?.addEventListener("submit", async e => {
     e.preventDefault();
-    const phone = normalizePhone(e.target.phone.value.trim());
     const data = {
-      phone,
-      email: e.target.email.value.trim(),
-      key: e.target.key.value.trim(),
-      viber: e.target.viber.value.trim(),
-      paydate: e.target.paydate.value,
-      months: +e.target.months.value
+      phone: normalizePhone(form.phone.value.trim()),
+      email: form.email.value.trim(),
+      key: form.key.value.trim(),
+      viber: form.viber.value.trim(),
+      paydate: form.paydate.value,
+      months: +form.months.value || 1
     };
-    const idx = e.target.clientIndex.value;
-    if (idx === '') {
-      await addClient(data);
-    } else {
-      alert("Редактирование пока не поддерживается");
-    }
+    await addClient(data);
+    form.reset();
     closeModal();
   });
 
-  editBtn.onclick = () => { alert("Редактирование пока не реализовано"); };
-  deleteBtn.onclick = async () => {
+  document.getElementById("editBtn")?.addEventListener("click", () => alert("Редактирование не реализовано"));
+  document.getElementById("deleteBtn")?.addEventListener("click", async () => {
     await deleteClient(currentClientIndex);
     closeInfoModal();
-  };
+  });
 });
+
+function checkLogin() {
+  const login = document.getElementById("loginInput")?.value.trim();
+  const pass = document.getElementById("passwordInput")?.value.trim();
+  if (login === "zpv" && pass === "11111111") {
+    localStorage.setItem("auth", "true");
+    document.getElementById("authModal")?.remove();
+    document.getElementById("mainContent")?.classList.remove("hidden");
+    fetchClients();
+  } else {
+    alert("Неверный логин или пароль");
+  }
+}
+
+function normalizePhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  return digits.startsWith("380") ? digits : (digits.startsWith("0") ? "38" : "380") + digits;
+}
 
 async function fetchClients() {
   try {
-    const res = await fetch(`${API_URL}/clients`);
-    const data = await res.json();
-    clients.splice(0, clients.length, ...data);
-    renderClients(document.getElementById('searchInput').value.trim());
+    const res = await fetch(API_URL + "/clients");
+    clients = await res.json();
+    renderClients();
   } catch (err) {
-    console.error("Ошибка загрузки клиентов", err);
+    console.error("Ошибка при получении клиентов:", err);
   }
 }
 
 async function addClient(data) {
   try {
-    const res = await fetch(`${API_URL}/clients`, {
+    const res = await fetch(API_URL + "/clients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error("Ошибка сохранения");
-    const saved = await res.json();
-    clients.push(saved);
-    renderClients(document.getElementById('searchInput').value.trim());
+    if (res.ok) fetchClients();
   } catch (err) {
-    alert("Не удалось сохранить клиента");
+    alert("Ошибка при добавлении клиента");
   }
 }
 
@@ -12346,30 +12362,50 @@ async function deleteClient(index) {
   const id = clients[index]?.id;
   if (!id) return;
   try {
-    const res = await fetch(`${API_URL}/clients/${id}`, {
-      method: "DELETE"
-    });
-    if (res.ok) {
-      clients.splice(index, 1);
-      renderClients(document.getElementById('searchInput').value.trim());
-    }
+    const res = await fetch(`${API_URL}/clients/${id}`, { method: "DELETE" });
+    if (res.ok) fetchClients();
   } catch (err) {
-    alert("Ошибка удаления клиента");
+    alert("Ошибка при удалении клиента");
   }
 }
 
-function checkLogin() {
-  const l = loginInput.value.trim().toLowerCase();
-  const p = passwordInput.value.trim();
-  if (l === 'zpv' && p === '11111111') {
-    localStorage.setItem("auth", "true");
-    document.getElementById("authModal").remove();
-    document.getElementById("mainContent").classList.remove("hidden");
-    fetchClients();
-  } else {
-    alert('Неверный логин или пароль');
-  }
+function renderClients() {
+  const list = document.getElementById("clientsContainer");
+  if (!list) return;
+  list.innerHTML = "";
+  clients.forEach((c, i) => {
+    const el = document.createElement("button");
+    el.className = "bg-gray-100 w-full text-left rounded-xl px-4 py-3 shadow font-bold text-xl";
+    el.innerHTML = `<div class="flex justify-between"><span>${c.phone}</span><span>${c.paydate || ""}</span></div>`;
+    el.onclick = () => showClientInfo(i);
+    list.appendChild(el);
+  });
+}
+
+function showClientInfo(index) {
+  currentClientIndex = index;
+  const c = clients[index];
+  document.getElementById("clientInfo").innerHTML = `
+    <div><strong>Телефон:</strong> ${c.phone}</div>
+    <div><strong>Email:</strong> ${c.email}</div>
+    <div><strong>Ключ:</strong> ${c.key}</div>
+    <div><strong>Viber:</strong> ${c.viber}</div>
+    <div><strong>Дата оплаты:</strong> ${c.paydate}</div>
+    <div><strong>Месяцев:</strong> ${c.months}</div>
+  `;
+  document.getElementById("infoModal")?.classList.replace("hidden", "flex");
+}
+
+function closeModal() {
+  document.getElementById("modal")?.classList.replace("flex", "hidden");
+}
+function closeInfoModal() {
+  document.getElementById("infoModal")?.classList.replace("flex", "hidden");
+}
+function openModal() {
+  document.getElementById("modal")?.classList.replace("hidden", "flex");
 }
 </script>
+
 </body>
 </html>
