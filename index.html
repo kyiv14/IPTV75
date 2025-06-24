@@ -5,209 +5,217 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IPTV</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 </head>
 <body class="bg-white text-gray-800 font-sans">
-  <!-- Авторизация -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="authModal">
-    <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+
+<!-- Авторизация -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="authModal">
+  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+    <form id="authForm">
       <h2 class="text-xl font-semibold mb-4">Авторизация</h2>
       <input class="w-full border rounded-xl px-4 py-2 mb-2" id="loginInput" placeholder="Логин" />
       <input class="w-full border rounded-xl px-4 py-2 mb-4" id="passwordInput" placeholder="Пароль" type="password" />
-      <button class="w-full bg-black text-white py-2 rounded-xl hover:opacity-80 transition" onclick="checkLogin()">Войти</button>
-    </div>
+      <button type="submit" class="w-full bg-black text-white py-2 rounded-xl hover:opacity-80 transition">Войти</button>
+    </form>
   </div>
+</div>
 
-  <!-- Интерфейс -->
-  <div class="hidden" id="mainContent">
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 z-40">
-      <button class="bg-black text-white px-6 py-3 rounded-2xl text-lg font-medium hover:opacity-80 transition" onclick="openModal()">Добавить клиента</button>
-    </div>
-    <input class="block mx-auto mt-24 mb-4 px-4 py-2 border rounded-xl w-full max-w-md" id="searchInput" oninput="searchClients(this.value.trim())" placeholder="Поиск по телефону" />
-    <div class="px-4 flex flex-col gap-4 max-w-md mx-auto" id="clientsContainer"></div>
+<!-- Основной интерфейс -->
+<div class="hidden" id="mainContent">
+  <div class="fixed top-4 left-1/2 -translate-x-1/2 z-40">
+    <button class="bg-black text-white px-6 py-3 rounded-2xl text-lg font-medium hover:opacity-80 transition" onclick="openModal()">Добавить клиента</button>
   </div>
+  <input class="block mx-auto mt-24 mb-4 px-4 py-2 border rounded-xl w-full max-w-md" id="searchInput" oninput="searchClients(this.value.trim())" placeholder="Поиск по телефону" />
+  <div class="px-4 flex flex-col gap-4 max-w-md mx-auto" id="clientsContainer"></div>
+</div>
 
-  <!-- Модалка добавления -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="modal">
-    <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-semibold" id="modalTitle">Новый клиент</h2>
-        <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeModal()">×</button>
-      </div>
-      <form class="space-y-4" id="clientForm">
-        <input id="clientId" type="hidden" />
-        <input class="w-full border rounded-xl px-4 py-2" id="phone" placeholder="Телефон" required />
-        <input class="w-full border rounded-xl px-4 py-2" id="email" placeholder="Email" required />
-        <input class="w-full border rounded-xl px-4 py-2" id="key" placeholder="Ключ" required />
-        <input class="w-full border rounded-xl px-4 py-2" id="viber" placeholder="Viber" required />
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label class="text-sm text-gray-600 block mb-1">Дата оплаты</label>
-            <input class="w-full border rounded-xl px-4 py-2" id="paydate" type="date" required />
-          </div>
-          <div class="flex-1">
-            <label class="text-sm text-gray-600 block mb-1">Месяцев</label>
-            <input class="w-full border rounded-xl px-4 py-2" id="months" type="number" min="1" value="1" required />
-          </div>
+<!-- Модалка добавления клиента -->
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="modal">
+  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold" id="modalTitle">Новый клиент</h2>
+      <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeModal()">×</button>
+    </div>
+    <form class="space-y-4" id="clientForm">
+      <input id="clientId" type="hidden" />
+      <input class="w-full border rounded-xl px-4 py-2" id="phone" inputmode="numeric" pattern="[0-9]*" placeholder="Телефон" required />
+      <input class="w-full border rounded-xl px-4 py-2" id="email" type="email" placeholder="Email" required />
+      <input class="w-full border rounded-xl px-4 py-2" id="key" placeholder="Ключ" required />
+      <input class="w-full border rounded-xl px-4 py-2" id="viber" inputmode="numeric" pattern="[0-9]*" placeholder="Viber" required />
+      <div class="flex gap-4 items-center">
+        <div class="flex-1">
+          <label class="text-sm text-gray-600 text-center block mb-1">Дата оплаты</label>
+          <input class="w-full border rounded-xl px-4 py-2" id="paydate" type="date" required />
         </div>
-        <button class="w-full bg-black text-white py-2 rounded-xl" type="submit">Сохранить</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Модалка инфо -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="infoModal">
-    <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold uppercase">Информация</h2>
-        <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeInfoModal()">×</button>
+        <div class="flex-1">
+          <label class="text-sm text-gray-600 text-center block mb-1">Количество месяцев</label>
+          <input class="w-full border rounded-xl px-4 py-2" id="months" type="number" min="1" value="1" required />
+        </div>
       </div>
-      <div class="space-y-4 text-gray-700 text-xl font-bold" id="clientInfo"></div>
-      <div class="flex gap-4 mt-4">
-        <button class="w-1/2 bg-black text-white py-3 rounded-xl hover:opacity-80 transition" onclick="editClient()">Редактировать</button>
-        <button class="w-1/2 bg-red-600 text-white py-3 rounded-xl hover:opacity-80 transition" onclick="deleteClient()">Удалить</button>
-      </div>
-      <button class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl hover:opacity-80 transition" onclick="downloadPlaylist()">Скачать плейлист</button>
-    </div>
+      <button class="w-full bg-black text-white py-2 rounded-xl" type="submit">Сохранить</button>
+    </form>
   </div>
+</div>
 
-  <script>
-    const API_URL = "https://iptv-5o3e.onrender.com";
-    let allClients = [], currentClient = null;
+<!-- Модалка информации -->
+<div class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="infoModal">
+  <div class="bg-white rounded-3xl shadow-xl w-full max-w-sm p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold uppercase">ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
+      <button class="text-gray-500 hover:text-gray-700 text-2xl leading-none" onclick="closeInfoModal()">×</button>
+    </div>
+    <div class="space-y-4 text-gray-700 text-lg font-bold" id="clientInfo"></div>
+    <div class="flex gap-4 mt-4">
+      <button class="w-1/2 bg-black text-white py-3 rounded-xl hover:opacity-80 transition" onclick="editClient()">Редактировать</button>
+      <button class="w-1/2 bg-red-600 text-white py-3 rounded-xl hover:opacity-80 transition" onclick="deleteClient()">Удалить</button>
+    </div>
+    <button class="mt-4 w-full bg-green-600 text-white py-3 rounded-xl hover:opacity-80 transition" onclick="downloadPlaylist()">Скачать плейлист</button>
+  </div>
+</div>
 
-    function checkLogin() {
-      const login = loginInput.value.trim().toLowerCase();
-      const pass = passwordInput.value.trim();
-      if (login === "zpv" && pass === "11111111") {
-        localStorage.setItem("auth", "1");
-        authModal.remove();
-        mainContent.classList.remove("hidden");
-        loadClients();
-      } else alert("Неверный логин или пароль");
-    }
-    if (localStorage.getItem("auth") === "1") {
-      authModal.remove();
-      mainContent.classList.remove("hidden");
-      loadClients();
-    }
+<script>
+const API_URL = "https://iptv-5o3e.onrender.com";
+let allClients = [], currentClient = null;
 
-    function pluralDays(n) {
-      const m10 = n % 10, m100 = n % 100;
-      if (m10 === 1 && m100 !== 11) return 'день';
-      if ([2,3,4].includes(m10) && ![12,13,14].includes(m100)) return 'дня';
-      return 'дней';
-    }
+document.getElementById("authForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  checkLogin();
+});
 
-    function daysLeft(paydate, months = 1) {
-      const start = new Date(paydate);
-      const end = new Date(start);
-      end.setMonth(end.getMonth() + months);
-      const now = new Date();
-      return Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
-    }
+function checkLogin() {
+  const login = loginInput.value.trim().toLowerCase();
+  const pass = passwordInput.value.trim();
+  if (login === "zpv" && pass === "11111111") {
+    localStorage.setItem("auth", "1");
+    authModal.remove();
+    document.getElementById("mainContent").classList.remove("hidden");
+    loadClients();
+  } else {
+    alert("Неверный логин или пароль");
+  }
+}
 
-    async function loadClients() {
-      const res = await fetch(`${API_URL}/clients`);
-      allClients = await res.json();
-      renderClients(allClients);
-    }
+function pluralDays(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'день';
+  if ([2,3,4].includes(m10) && ![12,13,14].includes(m100)) return 'дня';
+  return 'дней';
+}
 
-    function renderClients(data) {
-      const c = clientsContainer;
-      c.innerHTML = "";
-      const seen = new Set();
-      data.forEach(cl => {
-        if (seen.has(cl.phone)) return;
-        seen.add(cl.phone);
-        const d = daysLeft(cl.paydate, cl.months || 1);
-        const btn = document.createElement("button");
-        btn.className = "bg-gray-100 text-red-600 font-bold py-3 px-4 rounded-xl shadow hover:opacity-90 text-left text-2xl";
-        btn.innerHTML = `<div class='flex justify-between items-center'><span>${cl.phone}</span><span class='text-green-600'>${d} ${pluralDays(d)}</span></div>`;
-        btn.onclick = () => showClientInfo(cl);
-        c.appendChild(btn);
-      });
-    }
+function daysLeft(paydate, months = 1) {
+  const start = new Date(paydate);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + months);
+  const now = new Date();
+  return Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+}
 
-    function searchClients(q) {
-      const results = q ? allClients.filter(c => c.phone.includes(q)) : allClients;
-      renderClients(results);
-    }
+async function loadClients() {
+  const res = await fetch(`${API_URL}/clients`);
+  allClients = await res.json();
+  renderClients(allClients);
+}
 
-    function showClientInfo(cl) {
-      currentClient = cl;
-      const d = daysLeft(cl.paydate, cl.months || 1);
-      clientInfo.innerHTML = `
-        <div>📞 ${cl.phone}</div>
-        <div>📧 ${cl.email}</div>
-        <div>🔑 ${cl.key}</div>
-        <div>📱 ${cl.viber}</div>
-        <div>⏳ Осталось: ${d} ${pluralDays(d)}</div>`;
-      infoModal.classList.replace("hidden", "flex");
-    }
+function renderClients(data) {
+  const c = document.getElementById("clientsContainer");
+  c.innerHTML = "";
+  const seen = new Set();
+  data.forEach(cl => {
+    if (seen.has(cl.phone)) return;
+    seen.add(cl.phone);
+    const d = daysLeft(cl.paydate, cl.months || 1);
+    const btn = document.createElement("button");
+    btn.className = "bg-gray-100 text-red-600 font-bold py-3 px-4 rounded-xl shadow hover:opacity-90 text-left text-2xl";
+    btn.innerHTML = `<div class='flex justify-between items-center'><span>${cl.phone}</span><span class='text-green-600'>${d} ${pluralDays(d)}</span></div>`;
+    btn.onclick = () => showClientInfo(cl);
+    c.appendChild(btn);
+  });
+}
 
-    function closeInfoModal() {
-      infoModal.classList.replace("flex", "hidden");
-    }
+function searchClients(q) {
+  const results = q ? allClients.filter(c => c.phone.includes(q)) : allClients;
+  renderClients(results);
+}
 
-    function openModal() {
-      modalTitle.textContent = "Новый клиент";
-      clientForm.reset();
-      clientId.value = "";
-      modal.classList.replace("hidden", "flex");
-    }
+function showClientInfo(cl) {
+  currentClient = cl;
+  const d = daysLeft(cl.paydate, cl.months || 1);
+  const short = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
+  document.getElementById("clientInfo").innerHTML = `
+    <div>📞 <a href="tel:${cl.phone}" class="text-black no-underline">${cl.phone}</a></div>
+    <div>📧 <a href="mailto:${cl.email}" class="text-black no-underline">${cl.email}</a></div>
+    <div>🔑 ${cl.key}</div>
+    <div>📶 <a href="viber://chat?number=%2B${cl.viber}" class="inline-flex items-center gap-2 text-black no-underline"><i class="bi bi-viber text-xl align-middle"></i><span class="align-middle">${cl.viber}</span></a></div>
+    <div>🔗 <a href="https://is.gd/${short}" target="_blank" class="text-black no-underline">https://is.gd/${short}</a></div>
+    <div>⏳ Осталось: ${d} ${pluralDays(d)}</div>`;
+  document.getElementById("infoModal").classList.replace("hidden", "flex");
+}
 
-    function closeModal() {
-      modal.classList.replace("flex", "hidden");
-    }
+function closeInfoModal() {
+  document.getElementById("infoModal").classList.replace("flex", "hidden");
+}
 
-    function editClient() {
-      modal.classList.replace("hidden", "flex");
-      modalTitle.textContent = "Редактировать клиента";
-      phone.value = currentClient.phone;
-      email.value = currentClient.email;
-      key.value = currentClient.key;
-      viber.value = currentClient.viber;
-      paydate.value = currentClient.paydate;
-      months.value = currentClient.months || 1;
-      clientId.value = currentClient.id;
-    }
+function openModal() {
+  document.getElementById("modalTitle").textContent = "Новый клиент";
+  document.getElementById("clientForm").reset();
+  document.getElementById("clientId").value = "";
+  document.getElementById("modal").classList.replace("hidden", "flex");
+}
 
-    async function deleteClient() {
-      if (!confirm("Удалить клиента?")) return;
-      await fetch(`${API_URL}/clients/${currentClient.id}`, { method: "DELETE" });
-      closeInfoModal();
-      loadClients();
-    }
+function closeModal() {
+  document.getElementById("modal").classList.replace("flex", "hidden");
+}
 
-    async function downloadPlaylist() {
-      if (!currentClient?.key) return alert("Ключ отсутствует");
-      const content = `#EXTM3U\nhttp://iptv/${currentClient.key}/playlist.m3u8`;
-      const blob = new Blob([content], { type: "audio/x-mpegurl" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `${currentClient.phone}.m3u`;
-      a.click();
-    }
+function editClient() {
+  document.getElementById("modal").classList.replace("hidden", "flex");
+  document.getElementById("modalTitle").textContent = "Редактировать клиента";
+  document.getElementById("phone").value = currentClient.phone;
+  document.getElementById("email").value = currentClient.email;
+  document.getElementById("key").value = currentClient.key;
+  document.getElementById("viber").value = currentClient.viber;
+  document.getElementById("paydate").value = currentClient.paydate;
+  document.getElementById("months").value = currentClient.months || 1;
+  document.getElementById("clientId").value = currentClient.id;
+}
 
-    clientForm.addEventListener("submit", async e => {
-      e.preventDefault();
-      const data = {
-        phone: phone.value.trim(),
-        email: email.value.trim(),
-        key: key.value.trim(),
-        viber: viber.value.trim(),
-        paydate: paydate.value,
-        months: +months.value || 1
-      };
-      const method = clientId.value ? "PUT" : "POST";
-      const url = clientId.value ? `${API_URL}/clients/${clientId.value}` : `${API_URL}/clients`;
-      await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      closeModal();
-      loadClients();
-    });
-  </script>
+async function deleteClient() {
+  if (!confirm("Удалить клиента?")) return;
+  await fetch(`${API_URL}/clients/${currentClient.id}`, { method: "DELETE" });
+  closeInfoModal();
+  loadClients();
+}
+
+async function downloadPlaylist() {
+  if (!currentClient?.key) return alert("Ключ отсутствует");
+  const content = `#EXTM3U\nhttp://iptv/${currentClient.key}/playlist.m3u8`;
+  const blob = new Blob([content], { type: "audio/x-mpegurl" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentClient.phone}.m3u`;
+  a.click();
+}
+
+clientForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  const data = {
+    phone: phone.value.trim(),
+    email: email.value.trim(),
+    key: key.value.trim(),
+    viber: viber.value.trim(),
+    paydate: paydate.value,
+    months: +months.value || 1
+  };
+  const method = clientId.value ? "PUT" : "POST";
+  const url = clientId.value ? `${API_URL}/clients/${clientId.value}` : `${API_URL}/clients`;
+  await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  closeModal();
+  loadClients();
+});
+</script>
 </body>
 </html>
