@@ -16,8 +16,16 @@
   });
 }
 
-function copyVercelLink(phone) {
-  const url = `https://iptv75.vercel.app/${phone}.m3u`;
+function copyVercelLink() {
+  const el = document.getElementById("vercelLink");
+  if (!el) return;
+  const url = el.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}.m3u`;
   navigator.clipboard.writeText(url).then(() => {
     console.log("Скопировано:", url);
   }).catch(err => {
