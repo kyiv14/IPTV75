@@ -187,12 +187,26 @@ async function deleteClient() {
 }
 
 async function downloadPlaylist() {
-  if (!currentClient?.key) return alert("Ключ отсутствует");
-  const content = `#EXTM3U\nhttp://iptv/${currentClient.key}/playlist.m3u8`;
+  if (!currentClient?.key) {
+    alert("Ключ отсутствует");
+    return;
+  }
+
+  const response = await fetch("https://iptv75.vercel.app/sample.m3u");
+  if (!response.ok) {
+    alert("Ошибка загрузки плейлиста");
+    return;
+  }
+
+  let content = await response.text();
+
+  // Заменить сегмент /iptv/СтарыйКлюч/ на /iptv/НовыйКлюч/
+  content = content.replace(/(\/iptv\/)[^\/]+(\/)/g, `$1${currentClient.key}$2`);
+
   const blob = new Blob([content], { type: "audio/x-mpegurl" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${currentClient.phone}.m3u`;
+  a.download = `${currentClient.phone || 'playlist'}.m3u`;
   a.click();
 }
 
