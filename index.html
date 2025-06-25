@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IPTV</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com">function copyShortLink() {
+  const linkEl = document.getElementById("shortLink");
+  if (!linkEl) return;
+  const url = linkEl.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
+</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
 </head>
 <body class="bg-white text-gray-800 font-sans">
@@ -143,12 +153,16 @@ function showClientInfo(cl) {
   const d = daysLeft(cl.paydate, cl.months || 1);
   const short = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
   document.getElementById("clientInfo").innerHTML = `
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/call.svg" class="w-6 h-6"/><a href="tel:${cl.phone}" class="text-black no-underline">${cl.phone}</a></div>
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/mail.svg" class="w-6 h-6"/><a href="mailto:${cl.email}" class="text-black no-underline">${cl.email}</a></div>
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/smart-key.svg" class="w-6 h-6"/>${cl.key}</div>
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/viber.svg" class="w-6 h-6"/><a href="viber://chat?number=%2B${cl.viber}" class="text-black no-underline">${cl.viber}</a></div>
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/link.svg" class="w-6 h-6"/><a href="https://is.gd/${short}" target="_blank" class="text-black no-underline">https://is.gd/${short}</a></div>
-    <div class="flex items-center gap-4"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/>Осталось: ${d} ${pluralDays(d)}</div>`;;
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/call.svg" class="w-6 h-6"/><a href="tel:${cl.phone}" class="text-black no-underline hover:underline">${cl.phone}</a></div>
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/mail.svg" class="w-6 h-6"/><a href="mailto:${cl.email}" class="text-black no-underline hover:underline">${cl.email}</a></div>
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/smart-key.svg" class="w-6 h-6"/>${cl.key}</div>
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/viber.svg" class="w-6 h-6"/><a href="viber://chat?number=%2B${cl.viber}" class="text-black no-underline hover:underline">${cl.viber}</a></div>
+    <div class="flex items-center gap-4 text-xl">
+      <img src="https://isgd.vercel.app/link.svg" class="w-6 h-6"/>
+      <a id="shortLink" href="https://is.gd/${short}" target="_blank" class="text-black no-underline hover:underline">https://is.gd/${short}</a>
+      <button type="button" onclick="copyShortLink()" title="Копировать" class="text-gray-500 hover:text-black text-xl">⧉</button>
+    </div>
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/>Осталось: ${d} ${pluralDays(d)}</div>`;;;
   document.getElementById("infoModal").classList.replace("hidden", "flex");
 }
 
@@ -230,6 +244,16 @@ clientForm.addEventListener("submit", async e => {
   closeModal();
   loadClients();
 });
+function copyShortLink() {
+  const linkEl = document.getElementById("shortLink");
+  if (!linkEl) return;
+  const url = linkEl.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
 </script>
 </body>
 </html>
