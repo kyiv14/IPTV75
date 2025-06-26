@@ -206,6 +206,7 @@ function closeModal() {
 }
 
 function editClient() {
+  closeInfoModal(); // Закрываем окно информации перед открытием редактирования
   document.getElementById("modal").classList.replace("hidden", "flex");
   document.getElementById("modalTitle").textContent = "Редактировать клиента";
   document.getElementById("phone").value = currentClient.phone;
