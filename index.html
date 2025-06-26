@@ -179,13 +179,14 @@ function showClientInfo(cl) {
     <div class="flex items-start gap-4 text-xl">
       <img src="https://isgd.vercel.app/link.svg" class="w-6 h-6 mt-1"/>
       <div class="flex flex-col">
-        <a id="vercelLink" href="https://iptv75.vercel.app/${cl.phone}.m3u" target="_blank" class="text-black no-underline break-all leading-snug">
+        <span id="vercelLink" 
+              class="text-black no-underline break-all leading-snug cursor-pointer hover:text-blue-700"
+              onclick="copyVercelLink('${cl.phone}')">
           https://iptv75.vercel.app/<br/>${cl.phone}.m3u
-        </a>
+        </span>
       </div>
-      <button type="button" onclick="copyVercelLink('${cl.phone}')" title="Копировать" class="text-gray-500 hover:text-black text-xl">⧉</button>
     </div>
-<div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/><span class="text-red-600 text-[21px]">Осталось: ${d} ${pluralDays(d)}</span></div>`;;;
+<div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/><span class="text-red-600 text-[21px]">Осталось: ${d} ${pluralDays(d)}</span></div>`;
   document.getElementById("infoModal").classList.replace("hidden", "flex");
 }
 
@@ -271,6 +272,15 @@ function copyShortLink() {
   const linkEl = document.getElementById("shortLink");
   if (!linkEl) return;
   const url = linkEl.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
+
+function copyVercelLink(phone) {
+  const url = `https://iptv75.vercel.app/${phone}.m3u`;
   navigator.clipboard.writeText(url).then(() => {
     console.log("Скопировано:", url);
   }).catch(err => {
