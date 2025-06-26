@@ -1,11 +1,39 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>IPTV</title>
 <link rel="icon" href="https://iptv75.vercel.app/iptv_icon.ico" type="image/x-icon">
-<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com">function copyShortLink() {
+  const linkEl = document.getElementById("shortLink");
+  if (!linkEl) return;
+  const url = linkEl.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
+
+function copyVercelLink() {
+  const el = document.getElementById("vercelLink");
+  if (!el) return;
+  const url = el.getAttribute("href");
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}.m3u`;
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
+</script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet"/>
 </head>
 <body class="bg-white text-gray-800 font-sans">
@@ -51,16 +79,6 @@
 <input class="w-full border rounded-xl px-4 py-2" id="months" min="1" required="" type="number" value="1"/>
 </div>
 </div>
-<div class="flex gap-4 items-center">
-<div class="flex-1">
-<label class="text-sm text-gray-600 text-center block mb-1">Префикс 1 (необяз.)</label>
-<input class="w-full border rounded-xl px-4 py-2" id="prefix1" placeholder="Префикс перед номером"/>
-</div>
-<div class="flex-1">
-<label class="text-sm text-gray-600 text-center block mb-1">Префикс 2 (необяз.)</label>
-<input class="w-full border rounded-xl px-4 py-2" id="prefix2" placeholder="Префикс после номера"/>
-</div>
-</div>
 <button class="w-full bg-black text-white py-2 rounded-xl" type="submit">Сохранить</button>
 </form>
 </div>
@@ -90,11 +108,11 @@ document.getElementById("authForm").addEventListener("submit", function (e) {
 });
 
 function checkLogin() {
-  const login = document.getElementById("loginInput").value.trim().toLowerCase();
-  const pass = document.getElementById("passwordInput").value.trim();
+  const login = loginInput.value.trim().toLowerCase();
+  const pass = passwordInput.value.trim();
   if (login === "zpv" && pass === "11111111") {
     localStorage.setItem("auth", "1");
-    document.getElementById("authModal").remove();
+    authModal.remove();
     document.getElementById("mainContent").classList.remove("hidden");
     loadClients();
   } else {
@@ -148,10 +166,7 @@ function showClientInfo(cl) {
   currentClient = cl;
   const d = daysLeft(cl.paydate, cl.months || 1);
   const short = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
-  const prefix1 = cl.prefix1 || "";
-  const prefix2 = cl.prefix2 || "";
-  const phoneWithout38 = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
-  const rebrandlyShort = prefix1 + phoneWithout38 + prefix2;
+  const rebrandlyShort = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
   
   document.getElementById("clientInfo").innerHTML = `
     <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/call.svg" class="w-6 h-6"/><a href="tel:${cl.phone}" class="text-black no-underline">${cl.phone}</a></div>
@@ -215,8 +230,6 @@ function editClient() {
   document.getElementById("viber").value = currentClient.viber;
   document.getElementById("paydate").value = currentClient.paydate;
   document.getElementById("months").value = currentClient.months || 1;
-  document.getElementById("prefix1").value = currentClient.prefix1 || "";
-  document.getElementById("prefix2").value = currentClient.prefix2 || "";
   document.getElementById("clientId").value = currentClient.id;
 }
 
@@ -251,34 +264,26 @@ async function downloadPlaylist() {
   a.click();
 }
 
-document.getElementById("clientForm").addEventListener("submit", async e => {
+clientForm.addEventListener("submit", async e => {
   e.preventDefault();
   const data = {
-    phone: document.getElementById("phone").value.trim(),
-    email: document.getElementById("email").value.trim(),
-    key: document.getElementById("key").value.trim(),
-    viber: document.getElementById("viber").value.trim(),
-    paydate: document.getElementById("paydate").value,
-    months: +document.getElementById("months").value || 1,
-    prefix1: document.getElementById("prefix1").value.trim(),
-    prefix2: document.getElementById("prefix2").value.trim()
+    phone: phone.value.trim(),
+    email: email.value.trim(),
+    key: key.value.trim(),
+    viber: viber.value.trim(),
+    paydate: paydate.value,
+    months: +months.value || 1
   };
-  const method = document.getElementById("clientId").value ? "PUT" : "POST";
-  const url = document.getElementById("clientId").value ? `${API_URL}/clients/${document.getElementById("clientId").value}` : `${API_URL}/clients`;
-  const response = await fetch(url, {
+  const method = clientId.value ? "PUT" : "POST";
+  const url = clientId.value ? `${API_URL}/clients/${clientId.value}` : `${API_URL}/clients`;
+  await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data)
   });
-  
-  if (response.ok) {
-    closeModal();
-    loadClients();
-  } else {
-    alert("Ошибка при сохранении данных");
-  }
+  closeModal();
+  loadClients();
 });
-
 function copyShortLink() {
   const linkEl = document.getElementById("shortLink");
   if (!linkEl) return;
