@@ -165,6 +165,8 @@ function showClientInfo(cl) {
   currentClient = cl;
   const d = daysLeft(cl.paydate, cl.months || 1);
   const short = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
+  const rebrandlyShort = cl.phone.startsWith("38") ? cl.phone.slice(2) : cl.phone;
+  
   document.getElementById("clientInfo").innerHTML = `
     <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/call.svg" class="w-6 h-6"/><a href="tel:${cl.phone}" class="text-black no-underline">${cl.phone}</a></div>
     <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/mail.svg" class="w-6 h-6"/><a href="mailto:${cl.email}" class="text-black no-underline">${cl.email}</a></div>
@@ -186,7 +188,19 @@ function showClientInfo(cl) {
         </span>
       </div>
     </div>
-<div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/><span class="text-red-600 text-[21px]">Осталось: ${d} ${pluralDays(d)}</span></div>`;
+    
+    <div class="flex items-start gap-4 text-xl">
+      <img src="https://isgd.vercel.app/link.svg" class="w-6 h-6 mt-1"/>
+      <div class="flex flex-col">
+        <span id="rebrandlyLink" 
+              class="text-black no-underline break-all leading-snug cursor-pointer hover:text-blue-700"
+              onclick="copyRebrandlyLink('${rebrandlyShort}')">
+          https://rebrand.ly/<br/>${rebrandlyShort}
+        </span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-4 text-xl"><img src="https://isgd.vercel.app/date.svg" class="w-6 h-6"/><span class="text-red-600 text-[21px]">Осталось: ${d} ${pluralDays(d)}</span></div>`;
   document.getElementById("infoModal").classList.replace("hidden", "flex");
 }
 
@@ -206,7 +220,7 @@ function closeModal() {
 }
 
 function editClient() {
-  closeInfoModal(); // Закрываем окно информации перед открытием редактирования
+  closeInfoModal();
   document.getElementById("modal").classList.replace("hidden", "flex");
   document.getElementById("modalTitle").textContent = "Редактировать клиента";
   document.getElementById("phone").value = currentClient.phone;
@@ -282,6 +296,15 @@ function copyShortLink() {
 
 function copyVercelLink(phone) {
   const url = `https://iptv75.vercel.app/${phone}.m3u`;
+  navigator.clipboard.writeText(url).then(() => {
+    console.log("Скопировано:", url);
+  }).catch(err => {
+    console.error("Ошибка копирования:", err);
+  });
+}
+
+function copyRebrandlyLink(rebrandlyShort) {
+  const url = `https://rebrand.ly/${rebrandlyShort}`;
   navigator.clipboard.writeText(url).then(() => {
     console.log("Скопировано:", url);
   }).catch(err => {
