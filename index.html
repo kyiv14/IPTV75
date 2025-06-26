@@ -194,7 +194,7 @@ function showClientInfo(cl) {
       <div class="flex flex-col">
         <span id="rebrandlyLink" 
               class="text-black no-underline break-all leading-snug cursor-pointer hover:text-blue-700"
-              onclick="copyRebrandlyLink('${rebrandlyShort}')">
+              onclick="event.stopPropagation(); copyRebrandlyLink('${rebrandlyShort}')">
           https://rebrand.ly/<br/>${rebrandlyShort}
         </span>
       </div>
