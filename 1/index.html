@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Плейлист 4030 каналов</title>
+  <link rel="icon" href="https://iptv-spisok.vercel.app/icon-spisok.png" type="image/png">
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #F2F2F7;
+      color: #0a0a0a;
+    }
+
+    header {
+      padding: 1rem;
+      background: #007AFF;
+      color: white;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .search-container {
+      padding: 1rem;
+      padding-bottom: 0;
+      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .search-input {
+      width: calc(100% - 2rem);
+      margin: 0 1rem 1rem 1rem;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+
+    .category {
+      background-color: #007AFF;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      padding: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      height: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      color: white;
+      word-break: break-word;
+      overflow: hidden;
+      text-transform: uppercase;
+      border: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    .category-name {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+
+    .category-count {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .category:hover {
+      transform: translateY(-2px);
+      background-color: #0066CC;
+    }
+
+    .channel-result {
+      padding: 1rem;
+      margin: 0.5rem 1rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.3rem;
+    }
+
+    .channel-result:hover {
+      background-color: #f5f5f5;
+    }
+
+    .channel-category {
+      font-size: 0.8rem;
+      color: white;
+      background: #007AFF;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-content {
+      background: white;
+      max-width: 90%;
+      width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 12px;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      color: #007AFF;
+    }
+
+    .modal-search {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #888;
+    }
+
+    .channel {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .channel:hover {
+      background-color: #f5f5f5;
+    }
+
+    @media (max-width: 600px) {
+      .modal-content {
+        width: 95%;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>Плейлист 4030 каналов</header>
+  <div class="search-container">
+    <input type="text" class="search-input" id="main-search" placeholder="Поиск по всем каналам...">
+  </div>
+  <div class="categories" id="categories"></div>
+  <div id="search-results"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">×</span>
+      <h2 id="modal-title"></h2>
+      <input type="text" class="modal-search" id="modal-search" placeholder="Поиск каналов...">
+      <div id="channel-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const url = "https://moe-iptv.vercel.app/moe.m3u";
+    const categoriesEl = document.getElementById('categories');
+    const searchResultsEl = document.getElementById('search-results');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const channelList = document.getElementById('channel-list');
+    const mainSearch = document.getElementById('main-search');
+    const modalSearch = document.getElementById('modal-search');
+
+    let dataByGroup = {};
+    let allChannels = [];
+    let allCategories = [];
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    async function fetchAndParseM3U() {
+      const res = await fetch(url);
+      const text = await res.text();
+      const lines = text.split('\n');
+      let currentInfo = '';
+      let currentGroup = 'Без категории';
+      let currentUrl = '';
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('#EXTINF')) {
+          currentInfo = line;
+        } else if (line.startsWith('#EXTGRP')) {
+          currentGroup = line.replace('#EXTGRP:', '').trim();
+        } else if (line && !line.startsWith('#')) {
+          currentUrl = line;
+          const titleMatch = currentInfo.match(/,(.*)$/);
+          const title = titleMatch ? titleMatch[1] : 'Неизвестный канал';
+          
+          if (!dataByGroup[currentGroup]) {
+            dataByGroup[currentGroup] = [];
+          }
+          
+          const channelData = { 
+            title, 
+            group: currentGroup,
+            url: currentUrl 
+          };
+          
+          dataByGroup[currentGroup].push(channelData);
+          allChannels.push(channelData);
+          currentGroup = 'Без категории';
+        }
+      }
+
+      allCategories = Object.keys(dataByGroup);
+      renderCategories();
+    }
+
+    function renderCategories() {
+      categoriesEl.innerHTML = '';
+      searchResultsEl.innerHTML = '';
+      categoriesEl.style.display = 'grid';
+      
+      allCategories.forEach(group => {
+        const count = dataByGroup[group].length;
+        const el = document.createElement('div');
+        el.className = 'category';
+        
+        const nameEl = document.createElement('div');
+        nameEl.className = 'category-name';
+        nameEl.textContent = group.toUpperCase();
+        
+        const countEl = document.createElement('div');
+        countEl.className = 'category-count';
+        countEl.textContent = `${count} каналов`;
+        
+        el.appendChild(nameEl);
+        el.appendChild(countEl);
+        el.onclick = () => openModal(group);
+        categoriesEl.appendChild(el);
+      });
+    }
+
+    function openModal(group) {
+      modalTitle.textContent = group;
+      channelList.innerHTML = '';
+      dataByGroup[group].forEach(channel => {
+        const ch = document.createElement('div');
+        ch.className = 'channel';
+        ch.textContent = channel.title;
+        ch.dataset.title = channel.title.toLowerCase();
+        channelList.appendChild(ch);
+      });
+      modal.style.display = 'flex';
+      
+      modalSearch.oninput = function() {
+        const searchTerm = this.value.toLowerCase();
+        const channels = channelList.querySelectorAll('.channel');
+        channels.forEach(channel => {
+          const title = channel.textContent.toLowerCase();
+          channel.style.display = title.includes(searchTerm) ? 'block' : 'none';
+        });
+      };
+      modalSearch.value = '';
+    }
+
+    mainSearch.oninput = function() {
+      const searchTerm = this.value.toLowerCase();
+      
+      if (searchTerm === '') {
+        renderCategories();
+        return;
+      }
+      
+      categoriesEl.style.display = 'none';
+      searchResultsEl.innerHTML = '';
+      
+      const foundChannels = allChannels.filter(channel => 
+        channel.title.toLowerCase().includes(searchTerm)
+      );
+      
+      if (foundChannels.length === 0) {
+        searchResultsEl.innerHTML = '<div style="padding: 1rem; text-align: center;">Каналы не найдены</div>';
+        return;
+      }
+      
+      foundChannels.forEach(channel => {
+        const el = document.createElement('div');
+        el.className = 'channel-result';
+        
+        const titleEl = document.createElement('div');
+        titleEl.textContent = channel.title;
+        
+        const categoryEl = document.createElement('div');
+        categoryEl.className = 'channel-category';
+        categoryEl.textContent = channel.group;
+        
+        el.appendChild(titleEl);
+        el.appendChild(categoryEl);
+        
+        el.onclick = () => {
+          openModal(channel.group);
+          setTimeout(() => {
+            const modalChannels = channelList.querySelectorAll('.channel');
+            modalChannels.forEach(ch => {
+              if (ch.textContent === channel.title) {
+                ch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                ch.style.background = '#e6f2ff';
+                setTimeout(() => ch.style.background = '', 2000);
+              }
+            });
+          }, 100);
+        };
+        searchResultsEl.appendChild(el);
+      });
+    };
+
+    window.onclick = function(e) {
+      if (e.target === modal) closeModal();
+    };
+
+    fetchAndParseM3U();
+  </script>
+</body>
+</html>
