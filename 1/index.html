@@ -276,7 +276,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Новый клиент</h2>
-                <span class="close-btn" id="closeNewClientModal">×</span>
+                <span class="close-btn" onclick="closeModal('newClientModal')">×</span>
             </div>
             
             <div class="form-group">
@@ -331,7 +331,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>ИНФОРМАЦИЯ О КЛИЕНТЕ</h2>
-                <span class="close-btn" id="closeClientInfoModal">×</span>
+                <span class="close-btn" onclick="closeModal('clientInfoModal')">×</span>
             </div>
             
             <div id="clientInfoContent" class="client-info">
@@ -351,7 +351,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Редактировать клиента</h2>
-                <span class="close-btn" id="closeEditClientModal">×</span>
+                <span class="close-btn" onclick="closeModal('editClientModal')">×</span>
             </div>
             
             <div class="form-group">
@@ -409,32 +409,26 @@
             repo: "moe.iptv",
             branch: "main"
         };
-        const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx4wb2J0ptfZkOAuluCjynxGiqM8dcSeXtEDuDJ94p5t55tsFSzZklTehV6mvTcpQ6lWQ/exec";
-        const SECRET_TOKEN = "ваш_секретный_токен"; // Добавьте свой токен для безопасности
 
         // Хранилище клиентов
         let clients = JSON.parse(localStorage.getItem('iptv_clients')) || [];
         let currentClientId = null;
 
-        // Функция для получения GitHub токена
         function getGitHubToken() {
             return TOKEN_PARTS.join('');
         }
 
-        // Функция для извлечения номера телефона
         function extractPhoneNumber(phone) {
             const digits = phone.replace(/\D/g, '');
             return digits.slice(-10);
         }
 
-        // Функция для форматирования даты
         function formatDate(dateString) {
             if (!dateString) return 'Не указана';
             const date = new Date(dateString);
             return date.toLocaleDateString('ru-RU');
         }
 
-        // Функция для расчета оставшихся дней
         function calculateDaysLeft(paymentDate, months) {
             if (!paymentDate || !months) return 0;
             
@@ -451,7 +445,6 @@
             return diffDays;
         }
 
-        // Функция для принудительного скачивания файла
         function forceDownload(url, filename) {
             fetch(url)
                 .then(response => response.blob())
@@ -470,76 +463,6 @@
                 .catch(error => console.error('Ошибка при скачивании файла:', error));
         }
 
-        // Функция для отправки данных в Google Sheets
-        async function sendToGoogleSheets(clientData) {
-            try {
-                const phone = clientData.phone;
-                const links = [
-                    `https://is.gd/${phone}`,
-                    `https://rebrand.ly/${phone}`,
-                    `https://moe-iptv.vercel.app/${phone}.m3u`
-                ];
-                
-                const data = {
-                    token: SECRET_TOKEN,
-                    name: clientData.name || 'Без имени',
-                    phone: clientData.phone,
-                    key: clientData.key,
-                    date: formatDate(clientData.paymentDate),
-                    days: calculateDaysLeft(clientData.paymentDate, clientData.months),
-                    link1: links[0],
-                    link2: links[1],
-                    link3: links[2]
-                };
-                
-                // Отправка через FormData и fetch
-                const formData = new FormData();
-                for (const key in data) {
-                    formData.append(key, data[key]);
-                }
-                
-                // Основной метод отправки
-                const response = await fetch(GOOGLE_SHEETS_URL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors'
-                });
-                
-                console.log('Данные отправлены в Google Sheets');
-                
-                // Альтернативный метод через iframe (на случай проблем с CORS)
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                iframe.name = 'google-sheets-iframe';
-                document.body.appendChild(iframe);
-                
-                const form = document.createElement('form');
-                form.action = GOOGLE_SHEETS_URL;
-                form.method = 'POST';
-                form.target = 'google-sheets-iframe';
-                
-                for (const key in data) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = data[key];
-                    form.appendChild(input);
-                }
-                
-                document.body.appendChild(form);
-                form.submit();
-                
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }, 1000);
-                
-            } catch (error) {
-                console.error('Ошибка при отправке данных в Google Sheets:', error);
-            }
-        }
-
-        // Функции для работы с модальными окнами
         function openModal(modalId) {
             document.getElementById(modalId).style.display = 'flex';
         }
@@ -548,12 +471,10 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // Функция для сохранения клиентов в localStorage
         function saveClients() {
             localStorage.setItem('iptv_clients', JSON.stringify(clients));
         }
 
-        // Функция для фильтрации клиентов
         function filterClients(searchText) {
             if (!searchText) return clients;
             
@@ -566,7 +487,6 @@
             });
         }
 
-        // Функция для отображения клиентов
         function renderClients(clientsToRender = null) {
             const clientsList = document.getElementById('clientsList');
             clientsList.innerHTML = '';
@@ -586,23 +506,21 @@
                     <div class="days-left ${daysLeftClass}">${daysLeftText}</div>
                 `;
                 card.onclick = () => {
-                    currentClientId = index;
+                    currentClientId = clients.findIndex(c => c.phone === client.phone);
                     showClientInfo(client);
                 };
                 clientsList.appendChild(card);
             });
         }
 
-        // Функция для копирования в буфер обмена
         function copyToClipboard(text, event) {
-            if (event) event.preventDefault();
+            event.preventDefault();
             navigator.clipboard.writeText(text).catch(err => {
                 console.error('Ошибка копирования: ', err);
             });
             return false;
         }
 
-        // Функция для отображения информации о клиенте
         function showClientInfo(client) {
             const daysLeft = calculateDaysLeft(client.paymentDate, client.months);
             const daysLeftText = daysLeft >= 0 ? `Осталось ${daysLeft} дней` : `Просрочено на ${Math.abs(daysLeft)} дней`;
@@ -638,7 +556,6 @@
             openModal('clientInfoModal');
         }
 
-        // Функция для получения SHA файла
         async function getFileSha(filename) {
             try {
                 const apiUrl = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${filename}`;
@@ -660,7 +577,6 @@
             }
         }
 
-        // Функция для создания плейлиста
         function createPlaylist(phone, key) {
             return new Promise(async (resolve, reject) => {
                 try {
@@ -709,55 +625,37 @@
             });
         }
 
-        // Функции для отображения статуса
-        function showStatus(message, type) {
-            const statusEl = document.getElementById('status');
-            statusEl.innerHTML = message;
-            statusEl.className = type;
-            statusEl.style.display = 'block';
-        }
-        
-        function showEditStatus(message, type) {
-            const statusEl = document.getElementById('editStatus');
-            statusEl.innerHTML = message;
-            statusEl.className = type;
-            statusEl.style.display = 'block';
-        }
-
-        // Инициализация при загрузке страницы
+        // Обработчики событий
         document.addEventListener('DOMContentLoaded', () => {
             renderClients();
             
-            // Обработчик кнопки "Новый клиент"
-            document.getElementById('newClientBtn').addEventListener('click', function() {
+            // Кнопка "Новый клиент"
+            document.getElementById('newClientBtn').addEventListener('click', () => {
                 // Устанавливаем сегодняшнюю дату по умолчанию
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('paymentDate').value = today;
                 openModal('newClientModal');
             });
             
-            // Обработчик кнопки "Список каналов"
-            document.getElementById('channelListBtn').addEventListener('click', function() {
+            // Кнопка "Список каналов"
+            document.getElementById('channelListBtn').addEventListener('click', () => {
                 window.location.href = 'https://iptv-spisok.vercel.app/';
             });
             
-            // Обработчик поля поиска
-            document.getElementById('searchInput').addEventListener('input', function(e) {
+            // Поле поиска
+            document.getElementById('searchInput').addEventListener('input', (e) => {
                 const searchText = e.target.value;
                 const filteredClients = filterClients(searchText);
                 renderClients(filteredClients);
             });
             
-            // Обработчики модального окна нового клиента
-            document.getElementById('closeNewClientModal').addEventListener('click', function() {
+            // Кнопка "Отмена" в модалке нового клиента
+            document.getElementById('cancelBtn').addEventListener('click', () => {
                 closeModal('newClientModal');
             });
             
-            document.getElementById('cancelBtn').addEventListener('click', function() {
-                closeModal('newClientModal');
-            });
-            
-            document.getElementById('saveBtn').addEventListener('click', async function() {
+            // Кнопка "Сохранить" в модалке нового клиента
+            document.getElementById('saveBtn').addEventListener('click', async () => {
                 const name = document.getElementById('clientName').value.trim();
                 const phone = document.getElementById('phone').value.trim();
                 const key = document.getElementById('key').value.trim();
@@ -786,19 +684,24 @@
                     );
                     
                     // Добавляем клиента с дополнительными данными
-                    const newClient = {
+                    clients.push({
                         name,
                         phone: extractPhoneNumber(phone),
                         key,
                         paymentDate,
                         months
-                    };
-                    clients.push(newClient);
+                    });
+saveClientToGoogleSheets({
+    name,
+    phone: extractPhoneNumber(phone),
+    key,
+    paydate: paymentDate,
+    months,
+    viber: phone
+});
+
                     saveClients();
                     renderClients();
-                    
-                    // Отправляем данные в Google Sheets
-                    await sendToGoogleSheets(newClient);
                     
                     // Очищаем форму
                     document.getElementById('clientName').value = '';
@@ -816,12 +719,8 @@
                 }
             });
             
-            // Обработчики модального окна информации о клиенте
-            document.getElementById('closeClientInfoModal').addEventListener('click', function() {
-                closeModal('clientInfoModal');
-            });
-            
-            document.getElementById('editBtn').addEventListener('click', function() {
+            // Кнопка "Редактировать" в модалке информации о клиенте
+            document.getElementById('editBtn').addEventListener('click', () => {
                 if (currentClientId !== null) {
                     const client = clients[currentClientId];
                     
@@ -838,7 +737,8 @@
                 }
             });
             
-            document.getElementById('deleteBtn').addEventListener('click', function() {
+            // Кнопка "Удалить" в модалке информации о клиенте
+            document.getElementById('deleteBtn').addEventListener('click', () => {
                 if (currentClientId !== null) {
                     clients.splice(currentClientId, 1);
                     saveClients();
@@ -848,7 +748,8 @@
                 }
             });
             
-            document.getElementById('fileBtn').addEventListener('click', function() {
+            // Кнопка "Файл" в модалке информации о клиенте
+            document.getElementById('fileBtn').addEventListener('click', () => {
                 if (currentClientId !== null) {
                     const client = clients[currentClientId];
                     const url = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/${client.phone}.m3u`;
@@ -856,16 +757,13 @@
                 }
             });
             
-            // Обработчики модального окна редактирования клиента
-            document.getElementById('closeEditClientModal').addEventListener('click', function() {
+            // Кнопка "Отмена" в модалке редактирования
+            document.getElementById('editCancelBtn').addEventListener('click', () => {
                 closeModal('editClientModal');
             });
             
-            document.getElementById('editCancelBtn').addEventListener('click', function() {
-                closeModal('editClientModal');
-            });
-            
-            document.getElementById('editSaveBtn').addEventListener('click', function() {
+            // Кнопка "Сохранить" в модалке редактирования
+            document.getElementById('editSaveBtn').addEventListener('click', () => {
                 if (currentClientId !== null) {
                     const name = document.getElementById('editClientName').value.trim();
                     const phone = document.getElementById('editPhone').value.trim();
@@ -897,9 +795,68 @@
             });
         });
 
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.innerHTML = message;
+            statusEl.className = type;
+            statusEl.style.display = 'block';
+        }
+        
+        function showEditStatus(message, type) {
+            const statusEl = document.getElementById('editStatus');
+            statusEl.innerHTML = message;
+            statusEl.className = type;
+            statusEl.style.display = 'block';
+        }
+
         // Глобальные функции
         window.forceDownload = forceDownload;
         window.copyToClipboard = copyToClipboard;
     </script>
+
+<script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbx4wb2J0ptfZkOAuluCjynxGiqM8dcSeXtEDuDJ94p5t55tsFSzZklTehV6mvTcpQ6lWQ/exec";
+
+function saveClientToGoogleSheets(data) {
+  const payload = {
+    name: data.email || "",
+    phone: data.phone || "",
+    key: data.key || "",
+    date: data.paydate || "",
+    days: (data.months || 1) * 30,
+    link1: "https://is.gd/" + (data.phone || "").slice(2),
+    link2: "https://iptv75.vercel.app/" + (data.phone || "") + ".m3u",
+    link3: "viber://add?number=38" + (data.viber || "")
+  };
+
+  fetch(SHEET_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.text())
+  .then(txt => console.log("Отправлено в Google Sheets:", txt))
+  .catch(err => console.error("Ошибка Google Sheets:", err));
+}
+
+// Перехват формы, если она существует
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      const phone = document.getElementById("phone")?.value || "";
+      const email = document.getElementById("email")?.value || "";
+      const key = document.getElementById("key")?.value || "";
+      const viber = document.getElementById("viber")?.value || "";
+      const paydate = document.getElementById("paydate")?.value || "";
+      const months = parseInt(document.getElementById("months")?.value || "1");
+
+      const data = { phone, email, key, viber, paydate, months };
+      saveClientToGoogleSheets(data);
+    });
+  }
+});
+</script>
+
 </body>
 </html>
