@@ -814,19 +814,35 @@ saveClientToGoogleSheets({
         window.copyToClipboard = copyToClipboard;
     </script>
 
+
+
+
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbx4wb2J0ptfZkOAuluCjynxGiqM8dcSeXtEDuDJ94p5t55tsFSzZklTehV6mvTcpQ6lWQ/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxq-WroCS-MXQiu5dBm-qiJArI9CghXOAPqnT0a0VBTFouxh66qylaIcwgpM8IA0cnFbQ/exec";
 
 function saveClientToGoogleSheets(data) {
+  const rawPhone = (data.phone || "").replace(/\D/g, "");
+  const phone = "38" + rawPhone;
+  const name = data.name || "";
+  const key = data.key || "";
+  const date = data.paydate || "";
+  const months = parseInt(data.months || 1, 10);
+
+  const today = new Date();
+  const start = new Date(date);
+  start.setMonth(start.getMonth() + months);
+  const days = Math.max(0, Math.ceil((start - today) / (1000 * 60 * 60 * 24)));
+
   const payload = {
-    name: data.email || "",
-    phone: data.phone || "",
-    key: data.key || "",
-    date: data.paydate || "",
-    days: (data.months || 1) * 30,
-    link1: "https://is.gd/" + (data.phone || "").slice(2),
-    link2: "https://iptv75.vercel.app/" + (data.phone || "") + ".m3u",
-    link3: "viber://add?number=38" + (data.viber || "")
+    name,
+    phone,
+    key,
+    date,
+    days,
+    link1: "https://is.gd/" + rawPhone,
+    link2: "https://rebrand.ly/" + rawPhone,
+    link3: "https://moe-iptv.vercel.app/" + rawPhone + ".m3u",
+    viber: "viber://add?number=38" + rawPhone
   };
 
   fetch(SHEET_URL, {
@@ -838,24 +854,6 @@ function saveClientToGoogleSheets(data) {
   .then(txt => console.log("Отправлено в Google Sheets:", txt))
   .catch(err => console.error("Ошибка Google Sheets:", err));
 }
-
-// Перехват формы, если она существует
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.querySelector("form");
-  if (form) {
-    form.addEventListener("submit", function (e) {
-      const phone = document.getElementById("phone")?.value || "";
-      const email = document.getElementById("email")?.value || "";
-      const key = document.getElementById("key")?.value || "";
-      const viber = document.getElementById("viber")?.value || "";
-      const paydate = document.getElementById("paydate")?.value || "";
-      const months = parseInt(document.getElementById("months")?.value || "1");
-
-      const data = { phone, email, key, viber, paydate, months };
-      saveClientToGoogleSheets(data);
-    });
-  }
-});
 </script>
 
 </body>
