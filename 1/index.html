@@ -410,6 +410,7 @@
             branch: "main"
         };
         const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbx4wb2J0ptfZkOAuluCjynxGiqM8dcSeXtEDuDJ94p5t55tsFSzZklTehV6mvTcpQ6lWQ/exec";
+        const SECRET_TOKEN = "ваш_секретный_токен"; // Добавьте свой токен для безопасности
 
         // Хранилище клиентов
         let clients = JSON.parse(localStorage.getItem('iptv_clients')) || [];
@@ -479,18 +480,34 @@
                     `https://moe-iptv.vercel.app/${phone}.m3u`
                 ];
                 
-                const formData = new FormData();
-                formData.append('name', clientData.name || 'Без имени');
-                formData.append('phone', clientData.phone);
-                formData.append('key', clientData.key);
-                formData.append('date', formatDate(clientData.paymentDate));
-                formData.append('days', calculateDaysLeft(clientData.paymentDate, clientData.months));
-                formData.append('link1', links[0]);
-                formData.append('link2', links[1]);
-                formData.append('link3', links[2]);
+                const data = {
+                    token: SECRET_TOKEN,
+                    name: clientData.name || 'Без имени',
+                    phone: clientData.phone,
+                    key: clientData.key,
+                    date: formatDate(clientData.paymentDate),
+                    days: calculateDaysLeft(clientData.paymentDate, clientData.months),
+                    link1: links[0],
+                    link2: links[1],
+                    link3: links[2]
+                };
                 
-                // Используем два метода отправки для надежности
-                // 1. Отправка через hidden iframe (работает даже с CORS)
+                // Отправка через FormData и fetch
+                const formData = new FormData();
+                for (const key in data) {
+                    formData.append(key, data[key]);
+                }
+                
+                // Основной метод отправки
+                const response = await fetch(GOOGLE_SHEETS_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+                
+                console.log('Данные отправлены в Google Sheets');
+                
+                // Альтернативный метод через iframe (на случай проблем с CORS)
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
                 iframe.name = 'google-sheets-iframe';
@@ -501,25 +518,22 @@
                 form.method = 'POST';
                 form.target = 'google-sheets-iframe';
                 
-                // Добавляем все данные в форму
-                for (const [key, value] of formData.entries()) {
+                for (const key in data) {
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = key;
-                    input.value = value;
+                    input.value = data[key];
                     form.appendChild(input);
                 }
                 
                 document.body.appendChild(form);
                 form.submit();
                 
-                // Удаляем элементы после отправки
                 setTimeout(() => {
                     document.body.removeChild(form);
                     document.body.removeChild(iframe);
                 }, 1000);
                 
-                console.log('Данные отправлены в Google Sheets');
             } catch (error) {
                 console.error('Ошибка при отправке данных в Google Sheets:', error);
             }
