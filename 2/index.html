@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Редактировать Плейлист</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body class="bg-white text-black min-h-screen flex items-center justify-center px-4">
 
@@ -124,6 +125,7 @@
     let originalLines = [];
     let channels = [];
     let editedContent = '';
+    let currentHls = null;
 
     uploadBtn.addEventListener('click', () => fileInput.click());
 
@@ -193,7 +195,24 @@
           playBtn.title = 'Смотреть';
           playBtn.className = 'text-green-600 hover:text-green-700 text-xl';
           playBtn.onclick = () => {
-            iptvPlayer.src = entry.url;
+            // Остановить предыдущее воспроизведение
+            if (currentHls) {
+              currentHls.destroy();
+              currentHls = null;
+            }
+            iptvPlayer.pause();
+            iptvPlayer.src = '';
+
+            if (Hls.isSupported()) {
+              const hls = new Hls();
+              hls.loadSource(entry.url);
+              hls.attachMedia(iptvPlayer);
+              currentHls = hls;
+            } else if (iptvPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+              iptvPlayer.src = entry.url;
+            } else {
+              alert("Ваш браузер не поддерживает воспроизведение этого потока.");
+            }
             playerModal.classList.remove('hidden');
           };
 
@@ -251,9 +270,13 @@
     });
 
     closePlayer.addEventListener('click', () => {
-      playerModal.classList.add('hidden');
+      if (currentHls) {
+        currentHls.destroy();
+        currentHls = null;
+      }
       iptvPlayer.pause();
       iptvPlayer.src = '';
+      playerModal.classList.add('hidden');
     });
   </script>
 
