@@ -43,13 +43,11 @@
       </button>
     </div>
 
-    <!-- Поиск -->
     <div class="mb-2">
       <input type="text" id="searchInput" placeholder="Поиск канала..."
         class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black" />
     </div>
 
-    <!-- Выпадающий список Сервер1–10 -->
     <div class="mb-4">
       <select id="dropdown" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black">
         <option value="" disabled selected>Выберите сервер</option>
@@ -66,7 +64,6 @@
       </select>
     </div>
 
-    <!-- Счётчик -->
     <div class="text-center mb-4 text-lg font-semibold text-black">
       Осталось каналов: <span id="channelCounter">0</span>
     </div>
@@ -90,6 +87,19 @@
     </div>
   </div>
 
+  <!-- Онлайн проигрыватель -->
+  <div id="playerModal"
+    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm hidden z-30">
+    <div class="bg-white rounded-2xl p-4 w-[90%] max-w-xl shadow-xl text-black text-center">
+      <h2 class="text-lg font-semibold mb-4">Онлайн просмотр</h2>
+      <video id="iptvPlayer" controls autoplay class="w-full rounded-xl shadow border border-gray-300"></video>
+      <button id="closePlayer"
+        class="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-xl transition">
+        ЗАКРЫТЬ
+      </button>
+    </div>
+  </div>
+
   <script>
     const uploadBtn = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
@@ -107,6 +117,9 @@
     const channelList = document.getElementById('channelList');
     const saveBtn = document.getElementById('saveBtn');
     const searchInput = document.getElementById('searchInput');
+    const playerModal = document.getElementById('playerModal');
+    const iptvPlayer = document.getElementById('iptvPlayer');
+    const closePlayer = document.getElementById('closePlayer');
 
     let originalLines = [];
     let channels = [];
@@ -172,9 +185,24 @@
           const item = document.createElement('div');
           item.className = 'flex items-center justify-between bg-gray-100 px-4 py-2 rounded-xl shadow';
 
+          const leftSection = document.createElement('div');
+          leftSection.className = 'flex items-center gap-2 w-[75%]';
+
+          const playBtn = document.createElement('button');
+          playBtn.innerHTML = '▶️';
+          playBtn.title = 'Смотреть';
+          playBtn.className = 'text-green-600 hover:text-green-700 text-xl';
+          playBtn.onclick = () => {
+            iptvPlayer.src = entry.url;
+            playerModal.classList.remove('hidden');
+          };
+
           const name = document.createElement('span');
-          name.className = 'text-black font-medium truncate max-w-[70%]';
+          name.className = 'text-black font-medium truncate';
           name.textContent = entry.name;
+
+          leftSection.appendChild(playBtn);
+          leftSection.appendChild(name);
 
           const delBtn = document.createElement('button');
           delBtn.className = 'text-red-600 hover:text-red-500 font-semibold text-sm';
@@ -186,7 +214,7 @@
             renderChannelList(searchInput.value);
           };
 
-          item.appendChild(name);
+          item.appendChild(leftSection);
           item.appendChild(delBtn);
           channelList.appendChild(item);
         });
@@ -220,6 +248,12 @@
 
     closeSaveModal.addEventListener('click', () => {
       saveModal.classList.add('hidden');
+    });
+
+    closePlayer.addEventListener('click', () => {
+      playerModal.classList.add('hidden');
+      iptvPlayer.pause();
+      iptvPlayer.src = '';
     });
   </script>
 
